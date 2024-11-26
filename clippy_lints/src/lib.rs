@@ -119,6 +119,7 @@ mod disallowed_types;
 mod doc;
 mod double_parens;
 mod drop_forget_ref;
+mod drop_linear_type;
 mod duplicate_mod;
 mod else_if_without_else;
 mod empty_drop;
@@ -963,5 +964,6 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(manual_ignore_case_cmp::ManualIgnoreCaseCmp));
     store.register_late_pass(|_| Box::new(unnecessary_literal_bound::UnnecessaryLiteralBound));
     store.register_late_pass(move |_| Box::new(arbitrary_source_item_ordering::ArbitrarySourceItemOrdering::new(conf)));
+    store.register_late_pass(|_| Box::new(drop_linear_type::DropLinearType));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
