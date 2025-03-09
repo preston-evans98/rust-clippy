@@ -3,7 +3,7 @@ use std::ops::{Deref, DerefMut};
 // drop(T) in the MIR. If at type is not `Drop`, these calls may be absent
 // leading to false negatives.
 #[allow(drop_bounds)]
-pub trait NearlyLinear: Drop {
+pub trait DropWarning: Drop {
     type Inner;
     fn done(self) -> Self::Inner;
 }
@@ -41,7 +41,7 @@ impl<T> Drop for DropGuard<T> {
     }
 }
 
-impl<T: Sized> NearlyLinear for DropGuard<T> {
+impl<T: Sized> DropWarning for DropGuard<T> {
     type Inner = T;
     fn done(self) -> T {
         // Return the item without dropping the DropGuard

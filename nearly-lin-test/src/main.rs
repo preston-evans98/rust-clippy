@@ -1,4 +1,4 @@
-use nearly_linear::{DropGuard, NearlyLinear};
+use nearly_linear::{DropGuard, DropWarning};
 
 fn test_bad2() {
     let _a = DropGuard::new(1u8);

@@ -62,4 +62,4 @@ pub const TOKIO_IO_OPEN_OPTIONS: [&str; 4] = ["tokio", "fs", "open_options", "Op
 #[expect(clippy::invalid_paths)] // internal lints do not know about all external crates
 pub const TOKIO_IO_OPEN_OPTIONS_NEW: [&str; 5] = ["tokio", "fs", "open_options", "OpenOptions", "new"];
 #[expect(clippy::invalid_paths)] // internal lints do not know about all external crates
-pub const NEARLY_LINEAR_PATH: [&str; 2] = ["nearly_linear", "NearlyLinear"];
+pub const DROP_WARNING_PATH: [&str; 2] = ["nearly_linear", "DropWarning"];

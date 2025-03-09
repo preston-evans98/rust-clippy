@@ -1,17 +1,16 @@
-use std::cell::{LazyCell, OnceCell};
 use std::sync::OnceLock;
 
 use crate::rustc_lint::LintContext;
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::ty::implements_trait;
-use clippy_utils::{get_trait_def_id, match_trait_method, paths};
+use clippy_utils::{get_trait_def_id,  paths};
 use rustc_hir::def_id::DefId;
 use rustc_hir::*;
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::mir::{Location, TerminatorKind};
+use rustc_middle::mir::TerminatorKind;
 use rustc_session::declare_lint_pass;
 
-static NEARLY_LINEAR_DEF_ID: OnceLock<Option<DefId>> = OnceLock::new();
+static DROP_WARNING_DEF_ID: OnceLock<Option<DefId>> = OnceLock::new();
 
 declare_clippy_lint! {
     /// ### What it does
@@ -42,24 +41,25 @@ impl LateLintPass<'_> for DropLinearType {
 
         // Iterate through all basic blocks in the MIR
         for (_bb, bb_data) in mir.basic_blocks.iter().enumerate() {
-            // Check the terminator of each basic block
+            // If it's a cleanup block (i.e. if it only runs after a panic), skip it.
             if bb_data.is_cleanup {
                 continue;
             }
             if let Some(terminator) = &bb_data.terminator {
+                // If the terminator is a drop, check if the type implements DropWarning.
                 if let TerminatorKind::Drop { place, .. } = terminator.kind {
                     let ty = place.ty(mir, cx.tcx).ty;
-                    if let Some(nearly_linear) =
-                        NEARLY_LINEAR_DEF_ID.get_or_init(|| get_trait_def_id(cx.tcx, &paths::NEARLY_LINEAR_PATH))
+                    if let Some(drop_warning) =
+                        DROP_WARNING_DEF_ID.get_or_init(|| get_trait_def_id(cx.tcx, &paths::DROP_WARNING_PATH))
                     {
-                        if implements_trait(cx, ty, *nearly_linear, &[]) {
+                        if implements_trait(cx, ty, *drop_warning, &[]) {
                             if let Some(decl) = place.as_local().map(|local| mir.local_decls.get(local)).flatten() {
                                 let decl_span = decl.source_info.span;
                                 cx.span_lint(DROP_LINEAR_TYPE, decl_span, |diag| {
                                     diag.primary_message("dropping an item that should be used");
                                     diag.help("this item should always be consumed before going out of scope. You may have forgotten to call a function that consumes this value.");
                                     diag.span_note(terminator.source_info.span, "Item is dropped here without being used");
-                                    diag.note("If you're sure it's safe to drop this value without using it, call `NearlyLinear::done()` on the value before exiting the scope.");
+                                    diag.note("If you're sure it's safe to drop this value without using it, call `DropWarning::done()` on the value before exiting the scope.");
                                 });
                             } else {
                                 span_lint_and_help(
