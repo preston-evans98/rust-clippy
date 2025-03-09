@@ -37,7 +37,7 @@ impl LateLintPass<'_> for DropLinearType {
     fn check_body(&mut self, cx: &LateContext<'_>, body: &Body<'_>) {
         // Find the MIR for the owner of this body. The owner is the function/closure/const
         // whose body this belongs to. https://rustc-dev-guide.rust-lang.org/hir.html#hir-bodies
-        let mir = cx.tcx.optimized_mir(cx.tcx.hir().body_owner_def_id(body.id()));
+        let mir = cx.tcx.optimized_mir(cx.tcx.hir_body_owner_def_id(body.id()));
 
         // Iterate through all basic blocks in the MIR
         for (_bb, bb_data) in mir.basic_blocks.iter().enumerate() {
